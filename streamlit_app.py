@@ -38,5 +38,5 @@ st.write(
 
 # Add the upsell message to the app
 st.write(
-    pd_df[pd_df['color_or_style'] == color_or_style]['upsell_product_desc'].values[0]"
+    pd_df[pd_df['color_or_style'] == color_or_style]['upsell_product_desc'].values[0]
 )
