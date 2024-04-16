@@ -12,7 +12,11 @@ st.write(
 
 cnx = st.connection("snowflake")
 session = cnx.session()
-my_dataframe = session.table("ZENAS_ATHLEISURE_DB.PRODUCTS.CATALOG_FOR_WEBSITE")
+my_dataframe = session.view("ZENAS_ATHLEISURE_DB.PRODUCTS.CATALOG_FOR_WEBSITE")
+
+pd_df = my_dataframe.to_pandas()
+st.write(pd_df)
+st.stop()
 
 # Create a dropdown menu for the user to select a sweatsuit color or style
 color_or_style = st.selectbox( 
@@ -21,7 +25,7 @@ color_or_style = st.selectbox(
     label_visibility="hidden"
 )
 
-pd_df = my_dataframe.to_pandas()
+
 
 # Add an image of the selected product
 st.image(pd_df[pd_df["color_or_style"] == color_or_style]["direct_url"].values[0])
