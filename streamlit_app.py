@@ -5,43 +5,40 @@ import requests
 
 # Write directly to the app
 st.title("Zena's Amazing Athleisure Catalog")
-st.write(
-    """Pick a sweatsuit color or style:
-    """
-)
 
 cnx = st.connection("snowflake")
-session = cnx.session()
-my_dataframe = session.view("ZENAS_ATHLEISURE_DB.PRODUCTS.CATALOG_FOR_WEBSITE")
+my_cur = cnx.cursor() 
 
-pd_df = my_dataframe.to_pandas()
-st.write(pd_df)
-st.stop()
+# run a snowflake query and put it all in a var called my_catalog 
+my_cur.execute("select color_or_style from catalog_for_website") 
+my_catalog = my_cur.fetchall() 
 
-# Create a dropdown menu for the user to select a sweatsuit color or style
-color_or_style = st.selectbox( 
-    "Select a sweatsuit color or style",
-    my_dataframe.select(col("color_or_style")).distinct().collect(),
-    label_visibility="hidden"
-)
+# put the dafta into a dataframe 
+df = pandas.DataFrame(my_catalog) 
 
+# temp write the dataframe to the page so I Can see what I am working with 
+# st.write(df) 
 
+# put the first column into a list 
+color_list = df[0].values.tolist() 
 
-# Add an image of the selected product
-st.image(pd_df[pd_df["color_or_style"] == color_or_style]["direct_url"].values[0])
+# print(color_list) 
 
-# Add the price of the selected product to the app
-st.write(
-    f"Price: ${pd_df[pd_df['color_or_style'] == color_or_style]['price'].values[0]}"
-)
+# Let's put a pick list here so they can pick the color 
+option = st.selectbox('Pick a sweatsuit color or style:', list(color_list)) 
 
-# Add the sizes available for the selected product to the app
-st.write(
-    f"Sizes available: {pd_df[pd_df['color_or_style'] == color_or_style]['size_list'].values[0]}"
-)
+# We'll build the image caption now, since we can 
+product_caption = 'Our warm, comfortable, ' + option + ' sweatsuit!' 
 
-# Add the upsell message to the app
-st.write(
-    pd_df[pd_df['color_or_style'] == color_or_style]['upsell_product_desc'].values[0]
-)
+# use the option selected to go back and get all the info from the database
+my_cur.execute("select direct_url, price, size_list, upsell_product_desc from catalog_for_website where color_or_style = '" + option + "';") 
+df2 = my_cur.fetchone() 
+
+st.image( df2[0], width=400, caption= product_caption ) 
+st.write('Price: ', df2[1]) 
+st.write('Sizes Available: ',df2[2]) 
+st.write(df2[3])
+
+my_cur.close()
+
 
